@@ -1,0 +1,47 @@
+image: gcc
+before_script:
+  - apt-get update --yes
+  - apt-get install --yes cmake
+  - apt-get install --yes libgtest-dev
+
+variables:
+  BIN_NAME: prog
+
+stages:
+  - test_style
+  - build
+  - tests
+  - test_mem
+  - coverage
+
+test_style:
+  stage: test_style
+  script:
+    - ./linters/run.sh
+
+build:
+  stage: build
+  script:
+    - mkdir cmake_build
+    - cd cmake_build
+    - cmake ..
+    - cmake --cmake_build .
+  artifacts:
+    paths:
+      - "cmake_build"
+
+tests:
+  stage: tests
+  script:
+    - cmake CMakeLists.txt
+    - make tests
+    - ./tests
+
+test_mem:
+  stage: test_mem
+  script:
+    - apt-get update && apt-get install -y valgrind
+    - cmake CMakeLists.txt
+    - make
+    - valgrind ./tests --memcheck
+
